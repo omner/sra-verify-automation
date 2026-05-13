@@ -1,0 +1,4 @@
+aws_region           = "us-east-1"
+scan_regions         = ["us-east-1", "us-west-2"]
+audit_accounts       = ["111111111111"]
+log_archive_accounts = ["222222222222"]

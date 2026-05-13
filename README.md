@@ -17,6 +17,10 @@ Manual Invoke (CLI / Console)
     → Orchestrator consolidates all CSVs into single report
 ```
 
+## Documentation
+
+- [Multi-Account Deployment & Execution Guide](docs/MULTI_ACCOUNT_GUIDE.md) — step-by-step instructions for deploying and running across an AWS Organization, including cleanup.
+
 ## Prerequisites
 
 1. **SRAMemberRole deployed to all accounts** — use the `1-sraverify-member-roles.yaml` from the sra-verify repo via CloudFormation StackSets.

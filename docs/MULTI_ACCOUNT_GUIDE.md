@@ -96,7 +96,7 @@ terraform apply
 | Lambda Function | `sra-verify-scanner` | Runs checks per account |
 | Lambda Layer | `sraverify` | Contains the sra-verify library |
 | IAM Role | `sra-verify-orchestrator-role` | Permissions for orchestrator |
-| IAM Role | `sra-verify-scanner-role` | Permissions for scanner (includes `sts:AssumeRole` to `SRAMemberRole`) |
+| IAM Role | `SRAVerifyCodeBuildServiceRole` | Permissions for scanner (includes `sts:AssumeRole` to `SRAMemberRole`). Named to match the trust policy expected by `SRAMemberRole` in target accounts. |
 | CloudWatch Log Groups | `/aws/lambda/sra-verify-*` | Lambda logs (14-day retention) |
 
 ---
@@ -200,6 +200,7 @@ This removes `SRAMemberRole` and its policies from all accounts.
 
 - The orchestrator Lambda calls the Organizations API. This works from the audit account because the `SRAMemberRole` in the management account grants `organizations:ListAccounts` and `organizations:DescribeOrganization`, and the scanner assumes into the management account first to retrieve the account list.
 - The scanner Lambda's `sts:AssumeRole` targets `arn:*:iam::*:role/SRAMemberRole`. It can only assume into accounts where the role's trust policy allows the audit account. The StackSet handles this automatically.
+- The scanner Lambda role is named `SRAVerifyCodeBuildServiceRole` to match the trust policy condition in `SRAMemberRole`. This is required by the upstream `1-sraverify-member-roles.yaml` template which expects this exact role name.
 - The S3 bucket has `force_destroy = false`. You must empty it manually before running `terraform destroy`.
 - Lambda logs auto-expire after 14 days.
 - For organizations with more than 20 accounts, consider increasing `lambda_timeout` or switching to a Step Functions-based orchestration.

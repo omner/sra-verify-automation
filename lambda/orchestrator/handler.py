@@ -89,7 +89,8 @@ def lambda_handler(event, context):
         "total_pass": sum(r.get("pass", 0) for r in results),
         "total_fail": sum(r.get("fail", 0) for r in results),
         "total_error": sum(r.get("error_count", r.get("error", 0)) for r in results if isinstance(r.get("error", 0), int)),
-        "s3_location": f"s3://{s3_bucket}/sraverify/reports/consolidated/{scan_id}/",
+        "s3_csv": f"s3://{s3_bucket}/sraverify/reports/consolidated/{scan_id}/sra-verify-consolidated.csv",
+        "s3_dashboard": f"s3://{s3_bucket}/sraverify/reports/consolidated/{scan_id}/sra-verify-dashboard.html",
     }
 
     print(f"Scan complete: {json.dumps(summary, indent=2)}")
@@ -141,7 +142,7 @@ def invoke_scanner(lambda_client, function_name, payload):
 
 
 def consolidate_findings(s3_bucket, scan_id):
-    """Read all per-account CSVs and write a consolidated file."""
+    """Read all per-account CSVs, write a consolidated file, and copy the dashboard."""
     s3 = boto3.client("s3")
     prefix = f"sraverify/reports/raw/{scan_id}/"
 
@@ -172,3 +173,28 @@ def consolidate_findings(s3_bucket, scan_id):
     consolidated_key = f"sraverify/reports/consolidated/{scan_id}/sra-verify-consolidated.csv"
     s3.put_object(Bucket=s3_bucket, Key=consolidated_key, Body=output.getvalue())
     print(f"Consolidated {len(all_rows)} findings to s3://{s3_bucket}/{consolidated_key}")
+
+    # Copy dashboard HTML to the same prefix
+    upload_dashboard(s3, s3_bucket, scan_id)
+
+
+def upload_dashboard(s3, s3_bucket, scan_id):
+    """Upload the SRA Verify dashboard HTML to S3 next to the consolidated CSV."""
+    import urllib.request
+
+    dashboard_url = "https://raw.githubusercontent.com/awslabs/sra-verify/main/sra-verify-dashboard.html"
+    dashboard_key = f"sraverify/reports/consolidated/{scan_id}/sra-verify-dashboard.html"
+
+    try:
+        with urllib.request.urlopen(dashboard_url) as resp:
+            dashboard_content = resp.read()
+
+        s3.put_object(
+            Bucket=s3_bucket,
+            Key=dashboard_key,
+            Body=dashboard_content,
+            ContentType="text/html",
+        )
+        print(f"Dashboard uploaded to s3://{s3_bucket}/{dashboard_key}")
+    except Exception as e:
+        print(f"Warning: could not upload dashboard: {e}")

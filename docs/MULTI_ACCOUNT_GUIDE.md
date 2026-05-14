@@ -154,6 +154,35 @@ aws s3 cp s3://$BUCKET/sraverify/reports/consolidated/<SCAN_ID>/sra-verify-conso
 aws s3 cp s3://$BUCKET/sraverify/reports/raw/<SCAN_ID>/ ./raw-reports/ --recursive
 ```
 
+### Using the Dashboard
+
+Each scan automatically uploads the SRA Verify interactive dashboard alongside the CSV. To use it:
+
+1. Generate a presigned URL for the CSV (valid for 60 minutes):
+
+```bash
+SCAN_ID=<your-scan-id>
+CSV_URL=$(aws s3 presign s3://$BUCKET/sraverify/reports/consolidated/$SCAN_ID/sra-verify-consolidated.csv --expires-in 3600)
+```
+
+2. Open the dashboard in your browser. You have two options:
+
+**Option A: Download and open locally**
+```bash
+aws s3 cp s3://$BUCKET/sraverify/reports/consolidated/$SCAN_ID/sra-verify-dashboard.html .
+open sra-verify-dashboard.html   # macOS
+```
+
+**Option B: Use a presigned URL for the dashboard**
+```bash
+DASHBOARD_URL=$(aws s3 presign s3://$BUCKET/sraverify/reports/consolidated/$SCAN_ID/sra-verify-dashboard.html --expires-in 3600)
+echo $DASHBOARD_URL   # Open this in a browser
+```
+
+3. In the dashboard, paste the CSV presigned URL and click **Load URL**.
+
+> **Security note:** Do not share presigned URLs externally. They grant temporary access to the S3 objects using your credentials. For customer-facing delivery, download the files and share them through your preferred secure channel.
+
 ---
 
 ## Cleanup / Teardown

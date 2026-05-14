@@ -10,7 +10,7 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 }
 
 resource "aws_iam_role" "scanner" {
-  name               = "sra-verify-scanner-role"
+  name               = "SRAVerifyCodeBuildServiceRole"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
